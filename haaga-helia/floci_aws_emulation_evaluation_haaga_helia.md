@@ -369,7 +369,7 @@ To evaluate real containerized execution via the mounted Docker socket, compute 
 
 #### 3.3.4 Infrastructure as Code Execution (Terraform 14-Resource Lifecycle)
 
-A production-grade Terraform configuration was established in `/home/jude/floci-test/terraform/main.tf` using the official `hashicorp/aws` provider (~> 5.0):
+A production-grade, complete Terraform configuration was established in `/home/jude/floci-test/terraform/main.tf` using the official `hashicorp/aws` provider (~> 5.0). The full definition is provided below, containing all 14 interrelated resources across storage, networking, and identity:
 
 ```hcl
 terraform {
@@ -399,23 +399,216 @@ provider "aws" {
     sts = "http://localhost:4566"
   }
 }
+
+# --- S3 Storage Resources ---
+resource "aws_s3_bucket" "test_bucket" {
+  bucket        = "floci-iac-eval-bucket"
+  force_destroy = true
+
+  tags = {
+    Environment = "LocalEvaluation"
+    ManagedBy   = "Terraform"
+    Emulator    = "Floci"
+    Updated     = "LifecycleVerification"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "test_bucket_versioning" {
+  bucket = aws_s3_bucket.test_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_object" "sample_payload" {
+  bucket  = aws_s3_bucket.test_bucket.id
+  key     = "configs/app-config.json"
+  content = jsonencode({
+    appName     = "FlociDemo"
+    environment = "evaluation"
+    active      = true
+  })
+  content_type = "application/json"
+}
+
+# --- VPC & Networking Components ---
+resource "aws_vpc" "eval_vpc" {
+  cidr_block           = "10.10.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name        = "floci-eval-vpc"
+    Environment = "LocalEvaluation"
+  }
+}
+
+resource "aws_subnet" "eval_subnet_a" {
+  vpc_id                  = aws_vpc.eval_vpc.id
+  cidr_block              = "10.10.1.0/24"
+  availability_zone       = "us-east-1a"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "floci-eval-subnet-a"
+  }
+}
+
+resource "aws_subnet" "eval_subnet_b" {
+  vpc_id            = aws_vpc.eval_vpc.id
+  cidr_block        = "10.10.2.0/24"
+  availability_zone = "us-east-1b"
+
+  tags = {
+    Name = "floci-eval-subnet-b"
+  }
+}
+
+resource "aws_subnet" "eval_subnet_c" {
+  vpc_id            = aws_vpc.eval_vpc.id
+  cidr_block        = "10.10.3.0/24"
+  availability_zone = "us-east-1c"
+
+  tags = {
+    Name = "floci-eval-subnet-c"
+  }
+}
+
+resource "aws_internet_gateway" "eval_igw" {
+  vpc_id = aws_vpc.eval_vpc.id
+
+  tags = {
+    Name = "floci-eval-igw"
+  }
+}
+
+resource "aws_route_table" "eval_rt" {
+  vpc_id = aws_vpc.eval_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.eval_igw.id
+  }
+
+  tags = {
+    Name = "floci-eval-public-rt"
+  }
+}
+
+resource "aws_route_table_association" "eval_rta_a" {
+  subnet_id      = aws_subnet.eval_subnet_a.id
+  route_table_id = aws_route_table.eval_rt.id
+}
+
+resource "aws_security_group" "eval_sg" {
+  name        = "floci-eval-sg"
+  description = "Evaluates security group creation in Floci"
+  vpc_id      = aws_vpc.eval_vpc.id
+
+  ingress {
+    description = "HTTPS access"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTP access"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "floci-eval-sg"
+  }
+}
+
+# --- IAM Identity Resources ---
+resource "aws_iam_role" "eval_role" {
+  name = "floci-eval-lambda-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Environment = "LocalEvaluation"
+  }
+}
+
+resource "aws_iam_policy" "eval_policy" {
+  name        = "floci-eval-s3-access"
+  description = "IAM policy granting S3 permissions"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          aws_s3_bucket.test_bucket.arn,
+          "${aws_s3_bucket.test_bucket.arn}/*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eval_attachment" {
+  role       = aws_iam_role.eval_role.name
+  policy_arn = aws_iam_policy.eval_policy.arn
+}
+
+# --- Outputs ---
+output "s3_bucket_name" {
+  value = aws_s3_bucket.test_bucket.id
+}
+
+output "s3_object_key" {
+  value = aws_s3_object.sample_payload.key
+}
+
+output "vpc_id" {
+  value = aws_vpc.eval_vpc.id
+}
+
+output "subnet_a_id" {
+  value = aws_subnet.eval_subnet_a.id
+}
+
+output "security_group_id" {
+  value = aws_security_group.eval_sg.id
+}
+
+output "iam_role_arn" {
+  value = aws_iam_role.eval_role.arn
+}
 ```
 
-The stack defined 14 interrelated resources across storage, networking, and identity:
-- `aws_s3_bucket.test_bucket` (`floci-iac-eval-bucket`)
-- `aws_s3_bucket_versioning.test_bucket_versioning` (`Enabled`)
-- `aws_s3_object.sample_payload` (`configs/app-config.json`)
-- `aws_vpc.eval_vpc` (`10.10.0.0/16`)
-- `aws_subnet.eval_subnet_a` (`10.10.1.0/24`, AZ `us-east-1a`)
-- `aws_subnet.eval_subnet_b` (`10.10.2.0/24`, AZ `us-east-1b`)
-- `aws_subnet.eval_subnet_c` (`10.10.3.0/24`, AZ `us-east-1c`)
-- `aws_internet_gateway.eval_igw`
-- `aws_route_table.eval_rt` (with default gateway route `0.0.0.0/0`)
-- `aws_route_table_association.eval_rta_a`
-- `aws_security_group.eval_sg` (inbound rules for 80, 443; unrestricted egress)
-- `aws_iam_role.eval_role` (`floci-eval-lambda-role`)
-- `aws_iam_policy.eval_policy` (`floci-eval-s3-access`)
-- `aws_iam_role_policy_attachment.eval_attachment`
+The 14 resources defined above span the three core architecture tiers evaluated in this project: S3 storage (bucket, versioning, object), VPC networking (VPC, three subnets across three availability zones, internet gateway, public route table with default gateway route, association, security group with multi-port ingress), and IAM identity (role, policy document, and attachment).
 
 **Lifecycle Execution Metrics:**
 - **Initialization (`terraform init`)**: Downloaded and registered official provider `hashicorp/aws v5.100.0` (recorded in `.terraform.lock.hcl`).
