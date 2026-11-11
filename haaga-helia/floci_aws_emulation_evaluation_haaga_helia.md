@@ -2,7 +2,7 @@
 
 **Degree Programme**: Business Information Technology (Software Development & Cloud Engineering)  
 **Course**: Cloud Services (Pilvipalvelut)  
-**Author**: Jude  
+**Author**: Jussi Sahlberg
 **Title**: Local AWS Cloud Infrastructure Emulation: Performance, API Compliance, and Lifecycle Evaluation Using Floci on Debian ARM64  
 **Title in Finnish**: Paikallisen AWS-pilviympäristön emulointi: Suorituskyky, API-yhteensopivuus ja elinkaariarviointi Floci-alustalla Debian ARM64 -ympäristössä  
 **Date**: 11 November 2026  
@@ -238,10 +238,12 @@ The test environment was provisioned on a dedicated ARM64 Debian virtual machine
 | **Virtual Hostname** | `floci-test-deb01` | Dedicated student test node |
 | **Container Engine** | Docker Engine 26.1.5 (`docker.io`) | Linux container runtime |
 | **Compose Tool** | Docker Compose v2.26.1 | Service orchestration |
-| **IaC Runtime** | HashiCorp Terraform v1.17.1 | Static ARM64 binary (`/usr/local/bin/terraform`) |
+| **IaC Runtime** | HashiCorp Terraform v1.17.1 | Static ARM64 binary (`/usr/local/bin/terraform`)* |
 | **Client CLI** | AWS CLI v2.23.6 | Debian official package (Python 3.13.5 runtime) |
 | **JSON Processor** | jq v1.7.1 | Query inspection tool |
 | **Target Emulator** | `floci/floci:latest` (v2.4.0) | Multi-arch UBI9-micro native image (sha256:98d920) |
+
+*\*Note on Terraform Versioning*: For readers referencing earlier development cycles, Terraform v1.9.0 was released in June 2024 and v1.10.0 in November 2024. Following HashiCorp's continuous quarterly release cadence across 2025 (v1.11–v1.14) and 2026 (v1.15–v1.17), the current stable release is the v1.17 series (v1.17.1 released 28 October 2026; v1.17.2 released 11 November 2026). The installed version was verified directly on the host via `terraform -version`, returning `Terraform v1.17.1 on linux_arm64`.
 
 The project directory structure was established under `/home/jude/floci-test`, containing isolated directories for persistent state data and Terraform IaC configurations.
 
@@ -416,7 +418,8 @@ The stack defined 14 interrelated resources across storage, networking, and iden
 - `aws_iam_role_policy_attachment.eval_attachment`
 
 **Lifecycle Execution Metrics:**
-- **Initialization (`terraform init`)**: Downloaded and registered official provider `hashicorp/aws v5.100.0`.
+- **Initialization (`terraform init`)**: Downloaded and registered official provider `hashicorp/aws v5.100.0` (recorded in `.terraform.lock.hcl`).
+  - *Provider Version Resolution Note*: Under the pessimistic constraint `version = "~> 5.0"`, Terraform resolves the latest compatible release within the 5.x major branch (`>= 5.0.0, < 6.0.0`). Due to HashiCorp's rapid weekly release cadence (~50 minor versions per year), the AWS provider progressed from `v5.65.0` (August 2024) to `v5.100.0` (June 2025), which stands as the terminal milestone of the v5 line before `v6.0.0`. Floci was verified to maintain full API compatibility with both `v5.100.0` and earlier established minor versions such as `v5.65.0`.
 - **Initial Deployment (`terraform apply`)**: Successfully created 13 resources in 10 seconds.
 - **In-Place Modification**: Added Subnet C and updated S3 bucket tags. Executed with plan `1 to add, 1 to change, 0 to destroy` and applied cleanly in 1 second.
 - **Teardown (`terraform destroy`)**: Released all 14 resources in exact reverse topological order without deadlocks.
