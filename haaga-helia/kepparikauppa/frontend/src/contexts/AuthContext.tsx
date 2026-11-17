@@ -53,8 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserState(user);
   }, []);
 
-  const doRegister = useCallback(async (email: string, password: string, _role?: string) => {
-    const { token, user } = await register(email, password);
+  const doRegister = useCallback(async (email: string, password: string, role?: string) => {
+    const { token, user } = await register(email, password, role);
     setToken(token);
     setUser(user);
     setUserState(user);

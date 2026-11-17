@@ -12,6 +12,7 @@ import Register from './pages/Register';
 import OrderHistory from './pages/OrderHistory';
 import OrderDetail from './pages/OrderDetail';
 import ProductManager from './pages/ProductManager';
+import UserAdmin from './pages/UserAdmin';
 
 export default function App() {
   const { user } = useAuth();
@@ -31,7 +32,10 @@ export default function App() {
           <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="/order-success/:id" element={<OrderSuccess />} />
           {user?.role === 'manager' ? (
-            <Route path="/manager/products" element={<ProtectedRoute><ProductManager /></ProtectedRoute>} />
+            <>
+              <Route path="/manager/products" element={<ProtectedRoute><ProductManager /></ProtectedRoute>} />
+              <Route path="/manager/users" element={<ProtectedRoute><UserAdmin /></ProtectedRoute>} />
+            </>
           ) : null}
         </Routes>
       </main>

@@ -17,9 +17,14 @@ export default function Navbar() {
           {user ? (
             <>
               {user.role === 'manager' && (
-                <NavLink to="/manager/products" className={({ isActive }) => (isActive ? 'cart active' : 'cart')}>
-                  🛠️ Tuotehallinta
-                </NavLink>
+                <>
+                  <NavLink to="/manager/products" className={({ isActive }) => (isActive ? 'cart active' : 'cart')}>
+                    🛠️ Tuotehallinta
+                  </NavLink>
+                  <NavLink to="/manager/users" className={({ isActive }) => (isActive ? 'cart active' : 'cart')}>
+                    👥 Käyttäjähallinta
+                  </NavLink>
+                </>
               )}
               <NavLink to="/orders" className={({ isActive }) => (isActive ? 'cart active' : 'cart')}>
                 📦 Tilaukset

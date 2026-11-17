@@ -1,5 +1,5 @@
 import { authHeaders } from './auth';
-import type { Order } from '../types';
+import type { Order, User } from '../types';
 
 export type OrderItemInput = {
   productId: number;
@@ -134,5 +134,30 @@ export async function getOrders(): Promise<Order[]> {
 export async function getOrder(id: string): Promise<Order> {
   const res = await fetch(`/api/orders/${id}`, { headers: authHeaders() });
   if (!res.ok) throw new Error('Failed to load order');
+  return res.json();
+}
+
+export async function getUsers(): Promise<User[]> {
+  const res = await fetch('/api/users', { headers: authHeaders() });
+  if (!res.ok) throw new Error('Failed to load users');
+  return res.json();
+}
+
+export async function updateUserRole(id: string, role: string): Promise<User> {
+  const res = await fetch(`/api/users/${id}/role`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ role }),
+  });
+  if (!res.ok) throw new Error('Failed to update role');
+  return res.json();
+}
+
+export async function deleteUser(id: string) {
+  const res = await fetch(`/api/users/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to delete user');
   return res.json();
 }

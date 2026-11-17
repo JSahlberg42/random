@@ -26,9 +26,12 @@ Then open http://localhost:8080/
 | Endpoint | Method | Auth | Description |
 |----------|--------|------|-------------|
 | `/api/health` | GET | public | Health check |
-| `/api/auth/register` | POST | public | Register (`email`, `password`, optional `role`) |
+| `/api/auth/register` | POST | public | Register (`email`, `password`, optional `role`: `customer` or `manager`) |
 | `/api/auth/login` | POST | public | Login (`email`, `password`) |
 | `/api/auth/me` | GET | Bearer | Current user |
+| `/api/users` | GET | manager | List all users |
+| `/api/users/:id/role` | PATCH | manager | Change a user's role |
+| `/api/users/:id` | DELETE | manager | Delete a user |
 | `/api/categories` | GET | public | Product categories |
 | `/api/products` | GET | public | Products (optional `?category=<slug>`) |
 | `/api/products/:id` | GET | public | Single product |

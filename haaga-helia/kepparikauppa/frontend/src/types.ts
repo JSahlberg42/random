@@ -27,6 +27,7 @@ export type User = {
   id: number;
   email: string;
   role: 'customer' | 'manager';
+  created_at: string;
 };
 
 export type AuthResponse = {
