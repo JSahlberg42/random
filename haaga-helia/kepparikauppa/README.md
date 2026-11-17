@@ -6,7 +6,7 @@ A web shop for hobby horses (*keppihevonen*), utilities and accessories.
 
 | Service        | Tech                            | Port |
 |----------------|---------------------------------|------|
-| frontend       | Vite + React + TypeScript, nginx | 8080 (mapped to 80 inside) |
+| frontend       | Vite + React + TypeScript, nginx (unprivileged, 8080) | 8080 |
 | backend        | Node.js + Express + TypeScript   | 3000 |
 | db             | PostgreSQL 17                   | 5432 |
 
