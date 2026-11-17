@@ -5,6 +5,7 @@ import { pool } from './db';
 import categoryRoutes from './routes/categories';
 import productRoutes from './routes/products';
 import orderRoutes from './routes/orders';
+import authRoutes from './routes/auth';
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);

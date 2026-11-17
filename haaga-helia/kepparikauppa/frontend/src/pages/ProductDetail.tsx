@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import { getProduct } from '../lib/api';
 import type { Product } from '../types';
 import { eur } from '../lib/format';
@@ -9,6 +10,7 @@ export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,8 @@ export default function ProductDetail() {
       </div>
     );
   }
+
+  const isManager = user?.role === 'manager';
 
   return (
     <div className="detail">
@@ -89,6 +93,13 @@ export default function ProductDetail() {
               Lisää koriin ({eur(product.price_cents)})
             </button>
           </div>
+          {isManager && (
+            <div style={{ marginTop: 14, display: 'flex', gap: 8 }}>
+              <Link to={`/manager/products`} className="clear">
+                Muokkaa tuotetta
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

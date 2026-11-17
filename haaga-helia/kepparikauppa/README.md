@@ -21,11 +21,30 @@ docker compose up --build
 
 Then open http://localhost:8080/
 
-- `GET /api/health` – backend health check
-- `GET /api/categories` – product categories
-- `GET /api/products` – products (optional `?category=<slug>` filter)
-- `GET /api/products/:id` – single product
-- `POST /api/orders` – place an order
+### API
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/health` | GET | public | Health check |
+| `/api/auth/register` | POST | public | Register (`email`, `password`, optional `role`) |
+| `/api/auth/login` | POST | public | Login (`email`, `password`) |
+| `/api/auth/me` | GET | Bearer | Current user |
+| `/api/categories` | GET | public | Product categories |
+| `/api/products` | GET | public | Products (optional `?category=<slug>`) |
+| `/api/products/:id` | GET | public | Single product |
+| `/api/products` | POST | manager | Create product |
+| `/api/products/:id` | PUT | manager | Update product |
+| `/api/products/:id` | DELETE | manager | Delete product |
+| `/api/orders` | POST | customer | Place order |
+| `/api/orders` | GET | customer/manager | Order history (manager sees all) |
+| `/api/orders/:id` | GET | customer/manager | Order detail |
+
+### Demo accounts (seeded)
+
+| Email | Password | Role |
+|-------|----------|------|
+| manager@keppari.fi | salainen123 | manager |
+| asiakas@keppari.fi | salainen123 | customer |
 
 ## Local development
 

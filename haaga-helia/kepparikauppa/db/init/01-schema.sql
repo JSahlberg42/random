@@ -1,6 +1,14 @@
 -- Kepparikauppa schema
 -- Runs automatically on first postgres container startup
 
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'customer' CHECK (role IN ('customer', 'manager')),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS categories (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -21,6 +29,7 @@ CREATE TABLE IF NOT EXISTS products (
 
 CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
     total_cents INTEGER NOT NULL DEFAULT 0,
     customer_name TEXT,
     customer_email TEXT,
@@ -59,3 +68,9 @@ INSERT INTO products (category_id, name, description, price_cents, image_url, st
     ((SELECT id FROM categories WHERE slug = 'tarvikkeet'),
      'Ruokakuppi', 'Mini-ruokakuppi leikkeihin.', 600, NULL, 25, FALSE)
 ON CONFLICT DO NOTHING;
+
+-- Seed a manager and a customer for demonstration
+INSERT INTO users (email, password_hash, role) VALUES
+    ('manager@keppari.fi', '$2b$10$JZu67u3mvgyESISexGKH3.lwzoRx5scC/xXmIgyTD/YHfzwHNPZpa', 'manager'),
+    ('asiakas@keppari.fi', '$2b$10$JZu67u3mvgyESISexGKH3.lwzoRx5scC/xXmIgyTD/YHfzwHNPZpa', 'customer')
+ON CONFLICT (email) DO NOTHING;

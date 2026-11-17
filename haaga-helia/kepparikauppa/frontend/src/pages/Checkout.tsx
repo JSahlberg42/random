@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import { placeOrder } from '../lib/api';
 import type { CartItem } from '../types';
 import { eur } from '../lib/format';
@@ -8,6 +9,7 @@ import { eur } from '../lib/format';
 export default function Checkout() {
   const navigate = useNavigate();
   const { items, totalCents, clearCart } = useCart();
+  const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -27,8 +29,8 @@ export default function Checkout() {
     try {
       const form = new FormData(e.currentTarget as HTMLFormElement);
       const customer = {
-        name: (form.get('name') as string) || '',
-        email: (form.get('email') as string) || '',
+        name: (form.get('name') as string) || user?.email || '',
+        email: (form.get('email') as string) || user?.email || '',
       };
       const res = await placeOrder({
         items: items.map((i) => ({
@@ -55,11 +57,11 @@ export default function Checkout() {
       <form onSubmit={handleSubmit} className="checkout-form">
         <label>
           <span>Nimi</span>
-          <input name="name" required />
+          <input name="name" defaultValue={user?.email ?? ''} />
         </label>
         <label>
           <span>Sähköposti</span>
-          <input name="email" type="email" required />
+          <input name="email" type="email" defaultValue={user?.email ?? ''} required />
         </label>
         <div className="checkout-summary">
           <h3>Yhteenveto</h3>

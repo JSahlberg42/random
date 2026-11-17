@@ -5,8 +5,17 @@ import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import OrderSuccess from './pages/OrderSuccess';
+import ProtectedRoute from './components/ProtectedRoute';
+import { useAuth } from './contexts/AuthContext';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import OrderHistory from './pages/OrderHistory';
+import OrderDetail from './pages/OrderDetail';
+import ProductManager from './pages/ProductManager';
 
 export default function App() {
+  const { user } = useAuth();
+
   return (
     <>
       <Navbar />
@@ -15,8 +24,15 @@ export default function App() {
           <Route path="/" element={<Catalog />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/orders" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
+          <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="/order-success/:id" element={<OrderSuccess />} />
+          {user?.role === 'manager' ? (
+            <Route path="/manager/products" element={<ProtectedRoute><ProductManager /></ProtectedRoute>} />
+          ) : null}
         </Routes>
       </main>
     </>
