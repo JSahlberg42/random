@@ -23,18 +23,25 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-keppari}:${POSTGRES_PASSWORD:-keppari_dev}@db:5432/${POSTGRES_DB:-kepparikauppa}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - keppari-net
 
   db:
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     container_name: kepparikauppa-db
     env_file:
       - .env
     volumes:
       - keppari_db_data:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-keppari} -d ${POSTGRES_DB:-kepparikauppa}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - keppari-net
 

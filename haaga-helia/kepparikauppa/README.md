@@ -8,7 +8,7 @@ A web shop for hobby horses (*keppihevonen*), utilities and accessories.
 |----------------|---------------------------------|------|
 | frontend       | Vite + React + TypeScript, nginx | 8080 (mapped to 80 inside) |
 | backend        | Node.js + Express + TypeScript   | 3000 |
-| db             | PostgreSQL 15                   | 5432 |
+| db             | PostgreSQL 17                   | 5432 |
 
 Nginx serves the built frontend and reverse-proxies `/api` to the backend.
 
