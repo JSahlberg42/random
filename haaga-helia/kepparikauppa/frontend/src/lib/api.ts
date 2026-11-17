@@ -89,11 +89,11 @@ export async function uploadProductImage(id: string, file: File) {
   return res.json();
 }
 
-export async function register(email: string, password: string, role?: string) {
+export async function register(email: string, password: string, managerCode?: string) {
   const res = await fetch('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, role }),
+    body: JSON.stringify({ email, password, manager_code: managerCode }),
   });
   if (!res.ok) throw new Error('Registration failed');
   return res.json();

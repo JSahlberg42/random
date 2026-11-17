@@ -7,14 +7,14 @@ export default function Register() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('customer');
+  const [managerCode, setManagerCode] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
-      await register(email, password, role);
+      await register(email, password, managerCode);
       navigate('/');
     } catch {
       setError('Rekisteröinti epäonnistui. Sähköposti saattaa olla jo käytössä.');
@@ -34,10 +34,19 @@ export default function Register() {
           <span>Salasana</span>
           <input name="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <input type="radio" value="manager" checked={role === 'manager'} onChange={(e) => setRole(e.target.value)} />
-          <span>Rekisteröidy kauppiaaksi (manager)</span>
+        <label>
+          <span>Kauppiasrekisteröintikoodi (valinnainen)</span>
+          <input
+            name="manager_code"
+            type="text"
+            placeholder="Koodi…"
+            value={managerCode}
+            onChange={(e) => setManagerCode(e.target.value)}
+          />
         </label>
+        <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: 4 }}>
+          Ilman koodia rekisteröidyt tavalliseksi asiakkaaksi.
+        </p>
         <button type="submit" className="pay-btn">Luo tili</button>
       </form>
       <p style={{ marginTop: 12 }}>

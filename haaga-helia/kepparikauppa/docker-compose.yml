@@ -23,6 +23,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-keppari}:${POSTGRES_PASSWORD:-keppari_dev}@db:5432/${POSTGRES_DB:-kepparikauppa}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me-in-production}
+      MANAGER_REGISTRATION_CODE: ${MANAGER_REGISTRATION_CODE:-keppari-manager-2026}
     depends_on:
       db:
         condition: service_healthy

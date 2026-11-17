@@ -51,6 +51,10 @@ Then open http://localhost:8080/
 | manager@keppari.fi | salainen123 | manager |
 | asiakas@keppari.fi | salainen123 | customer |
 
+### Manager registration
+
+Registering as a store manager requires a pre-defined code (`MANAGER_REGISTRATION_CODE`, default `keppari-manager-2026`). Without a valid code, every new user is registered as a `customer`. Set `MANAGER_REGISTRATION_CODE` in `.env` (or your production environment) to control who can become a manager.
+
 ## Local development
 
 Frontend (hot reload):

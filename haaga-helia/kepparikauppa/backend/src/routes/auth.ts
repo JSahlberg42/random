@@ -8,15 +8,18 @@ const router = Router();
 const SALT_ROUNDS = 10;
 
 router.post('/register', async (req, res) => {
-  const { email, password, role } = req.body as {
+  const { email, password, manager_code } = req.body as {
     email: string;
     password: string;
-    role?: UserRole;
+    manager_code?: string;
   };
 
   if (!email || !password) {
     return res.status(400).json({ error: 'email and password are required' });
   }
+
+  const expectedCode = process.env.MANAGER_REGISTRATION_CODE;
+  const isManagerRequest = Boolean(expectedCode && manager_code === expectedCode);
 
   try {
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
@@ -25,7 +28,7 @@ router.post('/register', async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const userRole = role === 'manager' ? 'manager' : 'customer';
+    const userRole: UserRole = isManagerRequest ? 'manager' : 'customer';
 
     const { rows } = await pool.query(
       'INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3) RETURNING id, email, role, created_at',
