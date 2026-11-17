@@ -1,15 +1,22 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { pool } from '../db';
 import { authenticate, authorize } from '../middleware/auth';
 
 const router = Router();
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 router.get('/', async (req, res) => {
   const category = req.query.category as string | undefined;
 
   let query = `
     SELECT p.id, p.category_id, p.name, p.description, p.price_cents,
-           p.image_url, p.stock, p.is_hobby_horse,
+           p.image_url, p.image_content_type,
+           (p.image_data IS NOT NULL) AS has_image,
+           p.stock, p.is_hobby_horse,
            c.name AS category_name
     FROM products p
     LEFT JOIN categories c ON c.id = p.category_id
@@ -38,6 +45,21 @@ router.get('/:id', async (req, res) => {
   }
 
   res.json(rows[0]);
+});
+
+router.get('/:id/image', async (req, res) => {
+  const { rows } = await pool.query(
+    'SELECT image_data, image_content_type FROM products WHERE id = $1',
+    [req.params.id]
+  );
+
+  if (!rows[0] || !rows[0].image_data) {
+    return res.status(404).json({ error: 'image not found' });
+  }
+
+  res.set('Content-Type', rows[0].image_content_type || 'image/png');
+  res.set('Cache-Control', 'public, max-age=86400');
+  res.send(rows[0].image_data);
 });
 
 router.post(
@@ -90,6 +112,29 @@ router.post(
       console.error('Create product failed:', err);
       return res.status(500).json({ error: 'failed to create product' });
     }
+  }
+);
+
+router.post(
+  '/:id/image',
+  authenticate,
+  authorize('manager'),
+  upload.single('image'),
+  async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: 'no image file' });
+    }
+
+    const { rows } = await pool.query(
+      'UPDATE products SET image_data = $1, image_content_type = $2 WHERE id = $3 RETURNING id',
+      [req.file.buffer, req.file.mimetype, req.params.id]
+    );
+
+    if (!rows[0]) {
+      return res.status(404).json({ error: 'product not found' });
+    }
+
+    return res.json({ uploaded: true });
   }
 );
 

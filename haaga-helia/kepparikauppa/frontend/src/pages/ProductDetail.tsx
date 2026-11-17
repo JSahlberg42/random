@@ -51,6 +51,8 @@ export default function ProductDetail() {
         <div className="detail-image">
           {product.image_url ? (
             <img src={product.image_url} alt="" />
+          ) : product.has_image ? (
+            <img src={`/api/products/${product.id}/image`} alt="" />
           ) : (
             <span className="placeholder detail-placeholder">🐎</span>
           )}

@@ -5,6 +5,8 @@ export type Product = {
   description: string;
   price_cents: number;
   image_url: string | null;
+  image_content_type: string | null;
+  has_image: boolean;
   stock: number;
   is_hobby_horse: boolean;
   category_name?: string;

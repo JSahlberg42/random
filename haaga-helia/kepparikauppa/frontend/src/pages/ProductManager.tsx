@@ -5,6 +5,7 @@ import {
   deleteProduct,
   getProducts,
   updateProduct,
+  uploadProductImage,
 } from '../lib/api';
 import type { Product } from '../types';
 import { eur } from '../lib/format';
@@ -24,6 +25,7 @@ export default function ProductManager() {
     category_id: '',
     is_hobby_horse: false,
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -46,10 +48,13 @@ export default function ProductManager() {
     setForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
+  let targetId: number | null = null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSaving(true);
+    targetId = null;
     try {
       const payload = {
         name: form.name,
@@ -62,9 +67,16 @@ export default function ProductManager() {
       };
 
       if (mode === 'create') {
-        await createProduct(payload);
+        const created = await createProduct(payload);
+        targetId = created.id;
       } else if (editing) {
         await updateProduct(String(editing.id), payload);
+        targetId = editing.id;
+      }
+
+      // Upload image if one was selected
+      if (imageFile && targetId) {
+        await uploadProductImage(String(targetId), imageFile);
       }
 
       setForm({
@@ -76,6 +88,7 @@ export default function ProductManager() {
         category_id: '',
         is_hobby_horse: false,
       });
+      setImageFile(null);
       setEditing(null);
       setMode('list');
       await loadProducts();
@@ -178,8 +191,19 @@ export default function ProductManager() {
               <input name="stock" type="number" value={form.stock} onChange={handleChange} />
             </label>
             <label>
-              <span>Kuvan polku</span>
+              <span>Kuvan polku (ulkoinen URL)</span>
               <input name="image_url" value={form.image_url} onChange={handleChange} />
+            </label>
+            <label>
+              <span>Lataa kuva tietokantaan</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files?.length) setImageFile(e.target.files[0]);
+                }}
+              />
+              {imageFile && <span style={{ marginLeft: 8, fontSize: '0.85rem', color: 'var(--muted)' }}>{imageFile.name}</span>}
             </label>
             <label>
               <span>Kategoria ID</span>

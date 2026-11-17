@@ -32,6 +32,8 @@ Then open http://localhost:8080/
 | `/api/categories` | GET | public | Product categories |
 | `/api/products` | GET | public | Products (optional `?category=<slug>`) |
 | `/api/products/:id` | GET | public | Single product |
+| `/api/products/:id/image` | GET | public | Product image (stored in PostgreSQL bytea) |
+| `/api/products/:id/image` | POST | manager | Upload product image (multipart) |
 | `/api/products` | POST | manager | Create product |
 | `/api/products/:id` | PUT | manager | Update product |
 | `/api/products/:id` | DELETE | manager | Delete product |

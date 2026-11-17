@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS products (
     description TEXT,
     price_cents INTEGER NOT NULL DEFAULT 0,
     image_url TEXT,
+    image_data bytea,
+    image_content_type TEXT,
     stock INTEGER NOT NULL DEFAULT 0,
     is_hobby_horse BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()

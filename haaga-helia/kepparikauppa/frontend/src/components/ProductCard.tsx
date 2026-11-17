@@ -11,6 +11,8 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="card-image">
         {product.image_url ? (
           <img src={product.image_url} alt="" />
+        ) : product.has_image ? (
+          <img src={`/api/products/${product.id}/image`} alt="" />
         ) : (
           <span className="placeholder">🐎</span>
         )}

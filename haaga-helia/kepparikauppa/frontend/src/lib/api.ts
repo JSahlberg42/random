@@ -77,6 +77,18 @@ export async function deleteProduct(id: string) {
   return res.json();
 }
 
+export async function uploadProductImage(id: string, file: File) {
+  const form = new FormData();
+  form.append('image', file);
+  const res = await fetch(`/api/products/${id}/image`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: form,
+  });
+  if (!res.ok) throw new Error('Failed to upload image');
+  return res.json();
+}
+
 export async function register(email: string, password: string, role?: string) {
   const res = await fetch('/api/auth/register', {
     method: 'POST',
