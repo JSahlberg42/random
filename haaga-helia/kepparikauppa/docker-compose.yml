@@ -1,0 +1,46 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: kepparikauppa-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - keppari-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kepparikauppa-backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-keppari}:${POSTGRES_PASSWORD:-keppari_dev}@db:5432/${POSTGRES_DB:-kepparikauppa}
+    depends_on:
+      - db
+    networks:
+      - keppari-net
+
+  db:
+    image: postgres:15-alpine
+    container_name: kepparikauppa-db
+    env_file:
+      - .env
+    volumes:
+      - keppari_db_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - keppari-net
+
+networks:
+  keppari-net:
+    driver: bridge
+
+volumes:
+  keppari_db_data:
